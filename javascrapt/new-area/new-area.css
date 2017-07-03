@@ -1,3 +1,8 @@
+@font-face {
+    font-family: OptimusPrinceps;
+    src: url(OptimusPrinceps.ttf);
+}
+
 body {
     background-image: url(http://i.imgur.com/1IBkmYc.jpg);
     font-family: OptimusPrinceps, Minion Pro, Times New Roman, Arial;
@@ -105,12 +110,7 @@ body {
         opacity: 0;
     }
 
-#soundButtonHolder {
-    width: 90%;
-    text-align: center;
-}
-
-#soundButton {
+#generate-button {
     opacity: 0.9;
     float: right;
     font-family: Tahoma, Arial;
@@ -135,9 +135,12 @@ label {
     margin-right: 20px;
 }
 
-label.special {
-    color: #88BBDD;
-}
+    label.special {
+        color: #88BBDD;
+    }
+    label.custom {
+        color: #ffaaaa;
+    }
 
 .help {
     font-family: Arial;
