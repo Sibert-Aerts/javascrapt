@@ -44,8 +44,8 @@ var locations1 = ["abyss", "londo", "lake", "town", "chasm", "cave", "basin", "g
     // the trailing space however DOES matter
     // both of these are because of the special case where a prefix is glued to the word-spacing
     // e.g. "Blightburg" vs. "Undead Burg"
-var prefixes1  = ["anor ", "ash ", "blight", "crystal ", "darkroot ", "demon ", "firelink ", "lost ", "new londo ", "new ",
-    "northern ", "undead ", "oolacile ", "painted ", "quelaag's ", "royal ", "sanctuary ", "sen's ", "the duke's ", "great "];
+var prefixes1  = ["anor", "ash", "blight|", "crystal", "darkroot", "demon", "firelink", "lost", "new londo", "new",
+    "northern", "undead", "oolacile", "painted", "quelaag's", "royal", "sanctuary", "sen's", "the duke's", "great"];
     
     // no leading spaces required here, capitalisation IS required though
 var suffixes1  = ["ruins", "of the Abyss", "of the First Flame", "Dungeon", "of Ariamis", "of the Giants", "of Drakes"];
@@ -73,9 +73,9 @@ var locations2 = ["things", "betwixt" ,"majula","forest", "tower of flame", "cat
     // shulva
 var shulva = [ "Shulva, " ];	
     
-var prefixes2  = [ "Heide's ", "No-Man's ", "the lost ", "Sinner's ", "Huntsman's ", "Undead ", "Harvest ", "Earthen ", "Iron ",
-    "Shaded ", "Brightstone ", "Brightstone cove ", "Lord's private ", "black ", "drangleic ", "king's ", "Aldia's ", "Dragon ", "Dark ", 
-    "Dragon's ", "Brume ", "Frozen ", "Eleum ", "Grand ", "Old ", "Frigid "];
+var prefixes2  = [ "Heide's", "No-Man's", "the lost", "Sinner's", "Huntsman's", "Undead", "Harvest", "Earthen", "Iron",
+    "Shaded", "Brightstone", "Brightstone cove", "Lord's private", "black", "drangleic", "king's", "Aldia's", "Dragon", "Dark", 
+    "Dragon's", "Brume", "Frozen", "Eleum", "Grand", "Old", "Frigid"];
     
 var suffixes2  = [ "Betwixt", "of Fallen Giants", "of Flame", "of Blue", "Luna", "Sol", "of Pharros", "of Saints", "of Winter", "of Amana",
     "of Want", "of Old", "of Jeigh", "of Orro", "of Vammar", "of the King", "Tseldora", "of the Dead", "of the Old Iron King", "Loyce", "Outskirts"];
@@ -87,13 +87,14 @@ var suffixes2  = [ "Betwixt", "of Fallen Giants", "of Flame", "of Blue", "Luna",
 var areas3 = [ "Cemetery of Ash", "Lothric Castle", "Anor Londo", "Catacombs of Carthus", "Profaned Capital", 
     "Untended Graves", "High Wall of Lothric", "Farron Keep", "Irithyll of the Boreal Valley", "Cathedral of the Deep", 
     "Road of Sacrifices", "Smouldering Lake", "Kiln of the First Flame", "Consumed King's Garden", "Undead Settlement", 
-    "Grand Archives", "Irithyll Dungeon", "Firelink Shrine", "Church of Yorshka", "Archdragon Peak", "Painted World of Ariandel" ];
+    "Grand Archives", "Irithyll Dungeon", "Firelink Shrine", "Church of Yorshka", "Archdragon Peak", "Painted World of Ariandel", 
+    "The Dreg Heap", "The Ringed City"];
     
 var locations3 = [ "cemetery", "castle", "londo", "catacombs", "capital", "graves", "wall", "high wall", "keep", "irithyll", "valley",
-    "cathedral", "road", "lake", "kiln", "garden", "settlement", "archives", "dungeon", "shrine", "church", "peak", "world"];
+    "cathedral", "road", "lake", "kiln", "garden", "settlement", "archives", "dungeon", "shrine", "church", "peak", "world", "heap", "city"];
     
-var prefixes3  = [ "Lothric ", "anor ", "profaned ", "untended ", "high ", "farron ", "smouldering ", "consumed king's ", "undead ",
-    "grand ", "irithyll ", "firelink ", "archdragon ", "boreal ", "painted "];
+var prefixes3  = [ "Lothric", "anor", "profaned", "untended", "high", "farron", "smouldering", "consumed king's", "undead",
+    "grand", "irithyll", "firelink", "archdragon", "boreal", "painted", "dreg", "ringed"];
     
 var suffixes3  = ["of Ash", "of Carthus", "of Lothric", "of the Boreal Valley", "of the Deep", "of Sacrifices", "of the First Flame", 
     "Dungeon", "Shrine", "of Yorshka", "of Ariandel"];
@@ -105,7 +106,7 @@ var areas0 = [ "The Nexus", "Boletarian Palace", "Tower of Latria", "Valley of D
 
 var locations0 = [ "Nexus", "Palace", "Tower", "Valley", "Tunnel", "Shrine"];
 
-var prefixes0 = [ "Boletarian ", "Stonefang "];
+var prefixes0 = [ "Boletarian", "Stonefang"];
 
 var suffixes0 = [ "of Latria", "of Defilement", "of Storms"];
 
@@ -119,8 +120,8 @@ var areasbb = [ "Hunter's Dream", "Central Yharnam", "Iosefka's Clinic", "Cathed
 var locationsbb = [ "Dream", "Yharnam", "Clinic", "Ward", "Church", "Workshop", "Cathedral", "Altar", "Woods", "werth", "Lake", "Lane",
     "Village", "Castle", "Building", "Frontier", "Nightmare", "Hamlet"];
 
-var prefixesbb = [ "Hunter's ", "Central ", "Iosefka's ", "Old ", "Healing Church ", "Upper ", "Forbidden ", "Byrgen", "Moonside ", "Hemwick Charnel ",
-    "Abandoned ", "Yahar'gul, ", "Forsaken ", "Cainhurst ", "Lecture ", "Nightmare ", "Fishing "];
+var prefixesbb = [ "Hunter's", "Central", "Iosefka's", "Old", "Healing Church", "Upper", "Forbidden", "Byrgen|", "Moonside", "Hemwick Charnel",
+    "Abandoned", "Yahar'gul,", "Forsaken", "Cainhurst", "Lecture", "Nightmare", "Fishing"];
 
 var suffixesbb = [ "Ward", "of Despair", "of Mensis"];
 
@@ -173,7 +174,7 @@ function chance( x, outof){
     return (Math.random()*outof <= x);
 }
 
-function randomElem(list){
+function choose(list){
     i = Math.floor( Math.random() * list.length);
     return list[i];
 }
@@ -251,36 +252,40 @@ function compilePools(){
     }
 }
 
+function getPrefix(){
+    var prefix = choose(choose(prefixes));
+    // Add a space if the prefix doesn't end with the special | character
+    if (prefix[prefix.length-1] == '|')
+        return prefix.slice(0, prefix.length-1);
+    return prefix + ' ';
+}
+
 function generateName(){
     name = "";
     
     compilePools();
     
-    // if no checkboxes are checked, tell the player to do so
-    if(!(	$("#check1" ).prop("checked") || 
-            $("#check2" ).prop("checked") || 
-            $("#check3" ).prop("checked") || 
-            $("#check0" ).prop("checked") || 
-            $("#checkbb").prop("checked") || 
-            $("#checkcustom").prop("checked") ) )					
+    // if no checkboxes are checked, tell the user to do so
+    if(!(	$("#check1" ).prop("checked") || $("#check2" ).prop("checked") ||
+            $("#check3" ).prop("checked") || $("#check0" ).prop("checked") ||
+            $("#checkbb").prop("checked") || $("#checkcustom").prop("checked") ) )
     {
         return "Click one of the Checkboxes";
     }
     
-    // double randomElem because the parts are hidden in lists within lists
+    // double choose because the parts are hidden in lists within lists
     
     // 3 in 4 chance of adding an area prefix, 1 in 4 chance of adding an additional prefix
     if( chance(3,4) ){
-        name += randomElem(randomElem(prefixes));
-        if( chance(1,4) && name.slice(0,3) != "the") name = randomElem(randomElem(prefixes)) + name;
+        name += getPrefix();
+        if( chance(1,4) && name.slice(0,3) != "the") name = getPrefix() + name;
     }
     
-    
     // if Dark Souls 2 is enabled, 1 in 40 chance of prepending "Shulva, "
-    if($("#check2" ).prop("checked") && chance (1,40)) name = randomElem(shulva) + name;
+    if($("#check2" ).prop("checked") && chance (1,40)) name = choose(shulva) + name;
     
     // 100% chance of adding a main "location" piece
-    name+= randomElem(randomElem(locations));
+    name+= choose(choose(locations));
     
     // Fix the case so "BlightTown" turns into "Blighttown"
     name = name.toProperCase();
@@ -288,7 +293,7 @@ function generateName(){
     // 1 in 15 chance to add an area suffix if the name is longer than 15 characters
     // 1 in 5 chance to add an area suffix if the name is shorter than 15 characters
     if( chance( 1, 15 ) || (chance(4,15) && name.length < 15) )
-        name += " " + randomElem(randomElem(suffixes));
+        name += " " + choose(choose(suffixes));
     
     // If it isn't already there: 
     // 1/6 chance to prefix "The" if longer than 10 characters
