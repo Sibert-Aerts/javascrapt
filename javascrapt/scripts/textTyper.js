@@ -226,7 +226,7 @@ textTyper.prototype.timeFunc = function(){
 	var length = this.bufferedText.length - this.writeIndex;
 	
 	// crude, manual slowness variable
-	var slowness = 0.5;
+	var slowness = 1.5;
 	
 	// Scales inversely with length, smoothly thanks to Magic Numbers™ 
 	// ex: len = 0 : baseDelay = 33; len = 100 : baseDelay = 12;
