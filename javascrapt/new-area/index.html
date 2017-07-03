@@ -25,93 +25,91 @@
 <body>
 
 	<div id="main" class="content">
-	
+
 		<div id="name-underline-wrapper" class="faded-out">
 			<div id="name"></div>
 			<div class="underline"></div>
 		</div>
-		
-		
-		<table width="100%">
-			<tr>
-				<td width="40%">
-					<button id="generate-button" class="btn btn-primary" onClick="generate()">Take me somewhere else</button>
-				</td>
-				<td width="5%"></td>
-				<td width="30%">
-					<label><input id="check1" checked type="checkbox"></input> Dark Souls 1</label>
-					<label><input id="check2" checked type="checkbox"></input> Dark Souls 2</label>
-					<label><input id="check3" checked type="checkbox"></input> Dark Souls 3</label>
-					<br>
-					<label class="special"><input id="check0" type="checkbox"></input> Demon's Souls</label>
-					<label class="special"><input id="checkbb" type="checkbox"></input> Bloodborne</label>
-					<label class="custom"><input id="checkcustom" type="checkbox"></input> Custom</label>
-				</td>
-			</tr>
-		</table>
-		
+
+		<div style="width: 100%">
+			<div style="width: 55%; margin-right: 5%; display: inline-block">
+				<button id="generate-button" class="btn btn-primary" onClick="generate()">Take me somewhere else</button>
+			</div>
+			<div style="width: 30%; display: inline-block">
+				<label><input id="check1" checked type="checkbox"></input> Dark Souls 1</label>
+				<label><input id="check2" checked type="checkbox"></input> Dark Souls 2</label>
+				<label><input id="check3" checked type="checkbox"></input> Dark Souls 3</label>
+
+				<label class="special"><input id="check0" type="checkbox"></input> Demon's Souls</label>
+				<label class="special"><input id="checkbb" type="checkbox"></input> Bloodborne</label>
+				<label class="custom"><input id="checkcustom" type="checkbox"></input> Custom</label>
+			</div>
+		</div>
+
 		<button id="muteButton" style="margin-top:-15px" class="btn btn-danger option-button" onClick="mute()">mute</button>
 		<button id="greenButton" style="margin-top:-15px" class="btn btn-success option-button" onClick="greenToggle()">green</button>
 	</div>
-	
+
 	<div id="lesser-content-wrapper" style="margin-left:5%;">
-		
+
 		<div class="lesser content">
 			<h4 style="display:inline">Custom input:</h4> <span class="help">Use semicolons to separate individual bits, a trailing semicolon is required!</span>
 			<br>
 			<div class="help">(Doesn't actually save on refresh, so you'll want to keep these in a text file somewhere)</div>
 			<br>
-			
+
 			<b>Prefixes:</b><span class="help"> e.g. "Painted ;Heide's ;High ;"</span> <span class="help">Trailing space unless you want to concatenate the prefix!</span><br>
 			<textarea id="custom-prefixes" cols="90" rows="2"></textarea><br><br>
-			
+
 			<b>Places:</b><span class="help"> e.g. "World;Tower;Wall;"</span> <span class="help">No trailing or leading spaces!</span><br>
 			<textarea id="custom-places" cols="90" rows="2"></textarea><br><br>
-			
+
 			<b>Suffixes:</b><span class="help"> e.g. "of Ariamis;of Flame;of Lothric;"</span> <span class="help">No trailing or leading spaces!</span><br>
 			<textarea id="custom-suffixes" cols="90" rows="2"></textarea>
 		</div>
-		
+
 		<div class="lesser content">
 			<h4 style="display:inline">Custom text:</h4> <span class="help">Prints whatever text you put in.</span>
 			<br><br>
-			
-			<button id="customButton" class="btn btn-primary" onClick="customGenerate()" style="text-family:Courier New;font-size:10px">OVERRIDE</button>
+
+			<button id="customButton" class="btn btn-primary" onClick="customGenerate()">OVERRIDE</button>
 			<input type="text" id="custom-text" size="40"></input>
 		</div>
-		
-		
+
+
 		<div class="lesser content">
-			<h4 style="display:inline">Fading:</h4>
-			<br><br>			
-			<button class="btn btn-success" style="font-size:11px; padding:4px; margin-right:10px" 
-				onClick="$('#fade-out-check').prop('checked', false); $('#name-underline-wrapper').removeClass('faded-out');">
-					Force Visible
+			<h4>Fading:</h4>
+
+			<button class="btn btn-success" onClick="$('#fade-out-check').prop('checked', false); $('#name-underline-wrapper').removeClass('faded-out');">
+				Show
 			</button>
-					
-			<button class="btn btn-danger" style="font-size:11px; padding:4px;" 
-				onClick="$('#name-underline-wrapper').addClass('faded-out');">
-					Force Invisible
+
+			<button class="btn btn-danger" onClick="$('#name-underline-wrapper').addClass('faded-out');">
+				Hide
 			</button>
-			
+
 			<br>
-		
-			<label><input id="fade-out-check" checked type="checkbox"></input> Fade out</label><br>
+
+			<label><input id="fade-out-check" type="checkbox"></input> Auto-Fade</label><br>
 			<label>Seconds before fade out &nbsp;<input id="fade-out-time" type="text" size="2" value="3.5"></input></label>
 		</div>
-	
+
 	</div>
-		
+
 	<div class="credits" style="left: 20px;opacity: 0.5;font-family: OptimusPrinceps, Minion Pro, Times New Roman, Arial;">
-		Stream Edition™
+		The Ringed City Edition™
 	</div>
-	
-	<div class="credits" >
-		<a class="credit" href="http://rezuaq.tumblr.com"> 
-			Made by Rezuaq 
+
+	<div class="credits">
+		<a ref="http://rezuaq.tumblr.com">
+			Made by Rezuaq
 		</a>
-	</div>	
-	
+		<span class="dash">-</span>
+		<a href="http://rezuaq.tumblr.com/post/144271334368/dark-souls-area-name-generator">
+			See this post on tumblr
+		</a>
+	</div>
+
 </body>
 </html>
 
