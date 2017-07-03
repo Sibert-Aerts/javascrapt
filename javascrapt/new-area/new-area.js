@@ -16,9 +16,6 @@ $(document).ready(function () {
     });
 });
 
-// Greenscreen
-var green = false;
-
 
 // Area parts:
 
@@ -161,13 +158,16 @@ function mute(){
     document.getElementById("muteButton").innerHTML = muted? "unmute" : "mute";
 }
 
-function greenToggle(){
-    green = !green;
-    if(green)
-        $("#main").addClass("greenscreen");
+// chroma key background flag
+var chroma = false;
+
+function chromaToggle(){
+    chroma = !chroma;
+    if(chroma)
+        $("#main").addClass("chroma");
     else
-        $("#main").removeClass("greenscreen");
-    $("#greenButton").text(green? "no green" : "green")
+        $("#main").removeClass("chroma");
+    $("#chromaButton").text(chroma? "no chroma" : "chroma")
 }
 
 function chance( x, outof){

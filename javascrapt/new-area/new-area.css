@@ -32,8 +32,8 @@ body {
         margin-bottom: 40px;
     }
 
-    .content.greenscreen {
-        background-color: rgba(0, 255, 0, 1);
+    .content.chroma {
+        background-color: #00f;
     }
 
     .content.lesser {
