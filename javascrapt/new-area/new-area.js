@@ -7,7 +7,6 @@ var muted = false;
 for(var i = 0; i < maxSounds; i++)
     soundArray[i] = new Audio("https://puu.sh/k1OGY.mp3");
 
-var theWallSound = new Audio("https://my.mixtape.moe/alfgxc.mp3");
 var itemGetSound = new Audio("https://my.mixtape.moe/gmtxtg.mp3");
 
 var backgrounds = ["https://i.imgur.com/1IBkmYc.jpg"];
@@ -146,6 +145,12 @@ function getPrefix(){
     return prefix + ' ';
 }
 
+var easterEggs = {
+    "The Wall"  : new Audio("https://my.mixtape.moe/alfgxc.mp3"),
+    "The World" : new Audio("https://my.mixtape.moe/lgvonw.mp3"),
+    "The Doors" : new Audio("https://my.mixtape.moe/kvpycq.mp3"),
+};
+
 function generateName(){
     name = "";
     
@@ -196,14 +201,18 @@ function generateName(){
             }, 800);
     }
 
-    // Easter egg: if it generated "The Wall": reward the user with a clip from Another Brick in the Wall Pt. 2
-    if( name === "The Wall" || chance(0.1) ){
-        pauseAllSounds();
-        $("#stars").prepend( $("<span>", {class: "easter-egg", "data-toggle": "tooltip", title: name}).text("★"));
-        refreshTooltips();
-        playSound(theWallSound);
+    if(chance(0.5)) name = "The Doors";
+
+    // Check for easter eggs.
+    for(var egg in easterEggs){
+        if( egg == name ){
+            pauseAllSounds();
+            $("#stars").prepend( $("<span>", {class: "easter-egg", "data-toggle": "tooltip", title: name}).text("★"));
+            refreshTooltips();
+            playSound(easterEggs[egg]);
+        }
     }
-    
+
     return name;
 }
 
