@@ -29,7 +29,7 @@ Dark1.locations = ["abyss", "londo", "lake", "town", "chasm", "cave", "basin", "
 // Capitalization doesn't matter in prefixes
 // Notice "blight|", this is a special character for when you want the prefix to attach directly to the following word (e.g. "blighttown" instead of "blight town")
 Dark1.prefixes = ["anor", "ash", "blight|", "crystal", "darkroot", "demon", "firelink", "lost", "new londo", "new",
-    "northern", "undead", "oolacile", "painted", "quelaag's", "royal", "sanctuary", "sen's", "the duke's", "great"];
+    "northern", "undead", "oolacile", "painted", "quelaag's", "royal", "sanctuary", "sen's", "duke's", "great"];
 
 // Capitalization matters in suffixes
 Dark1.suffixes = ["ruins", "of the Abyss", "of the First Flame", "Dungeon", "of Ariamis", "of the Giants", "of Drakes"];
@@ -58,7 +58,7 @@ Dark2.locations = ["things", "betwixt", "majula", "forest", "tower of flame", "c
 // shulva
 var shulva = ["Shulva, "];
 
-Dark2.prefixes = ["Heide's", "No-Man's", "the lost", "Sinner's", "Huntsman's", "Undead", "Harvest", "Earthen", "Iron",
+Dark2.prefixes = ["Heide's", "No-Man's", "lost", "Sinner's", "Huntsman's", "Undead", "Harvest", "Earthen", "Iron",
     "Shaded", "Brightstone", "Brightstone cove", "Lord's private", "black", "drangleic", "king's", "Aldia's", "Dragon", "Dark",
     "Dragon's", "Brume", "Frozen", "Eleum", "Grand", "Old", "Frigid"];
 

@@ -9,10 +9,33 @@ for(var i = 0; i < maxSounds; i++)
 
 var itemGetSound = new Audio("https://my.mixtape.moe/gmtxtg.mp3");
 
-var backgrounds = ["https://i.imgur.com/1IBkmYc.jpg"];
+var backgrounds = [
+    "http://i.imgur.com/cURcsam.jpg",
+    "http://i.imgur.com/uNuqPte.jpg",
+    "http://i.imgur.com/d8thQaE.jpg",
+    "http://i.imgur.com/ic9I2Uu.jpg",
+    "http://i.imgur.com/hjPuO8N.jpg",
+    "http://i.imgur.com/9gX5pBB.jpg",
+    "http://i.imgur.com/qEk3cZa.jpg",
+    "http://i.imgur.com/7qzGveQ.jpg",
+    "http://i.imgur.com/ej8kxIW.jpg",
+    "http://i.imgur.com/baIPonl.jpg",
+    "http://i.imgur.com/kfTzoWv.jpg",
+];
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 var currentBackground = "";
 
-function randomBackground(fade=true) {
+async function randomBackground(fade=true) {
+    if(fade){
+        $("#background-layer").css("background-image", $("body").css("background-image"));
+        $("#background-layer").removeClass("faded");
+        await sleep(100);
+        $("#background-layer").addClass("faded");
+    }
     $("body").css("background-image", `url(${choose(backgrounds)})`);
 }
 
@@ -145,10 +168,16 @@ function getPrefix(){
     return prefix + ' ';
 }
 
+function worldFunc(){
+    $("#world-layer").css("background-image", $("body").css("background-image"));
+    $("#world-layer").removeClass("faded");
+    setTimeout(()=>$("#world-layer").addClass("faded"), 5000);
+}
+
 var easterEggs = {
-    "The Wall"  : new Audio("https://my.mixtape.moe/alfgxc.mp3"),
-    "The World" : new Audio("https://my.mixtape.moe/lgvonw.mp3"),
-    "The Doors" : new Audio("https://my.mixtape.moe/kvpycq.mp3"),
+    "The Wall"  : {audio: new Audio("https://my.mixtape.moe/alfgxc.mp3")},
+    "The World" : {audio: new Audio("https://my.mixtape.moe/lgvonw.mp3"), func: worldFunc},
+    "The Doors" : {audio: new Audio("https://my.mixtape.moe/kvpycq.mp3")},
 };
 
 function generateName(){
@@ -158,23 +187,22 @@ function generateName(){
     
     // if no checkboxes are checked, tell the user to do so
     if( !Object.keys(pools).reduce((total, key) => total || $(`input[target=${key}]`).prop("checked"), false) )
-    {
         return "Tick one of the Checkboxes";
-    }
     
     // double choose because the parts are hidden in lists within lists
     
     // 3 in 4 chance of adding an area prefix, 1 in 4 chance of adding an additional prefix
     if( chance(3,4) ){
         name += getPrefix();
-        if( chance(1,4) && name.slice(0,3) != "the") name = getPrefix() + name;
+        if(chance(1,4)) 
+            name += getPrefix();
     }
     
     // if Dark Souls 2 is enabled, 1 in 40 chance of prepending "Shulva, "
-    if($("#check2" ).prop("checked") && chance (1,40)) name = choose(shulva) + name;
+    if($("input[target=Dark2]").prop("checked") && chance (1,40)) name = choose(shulva) + name;
     
     // 100% chance of adding a main "location" piece
-    name+= choose(choose(locations));
+    name += choose(choose(locations));
     
     // Fix the case so "BlightTown" turns into "Blighttown"
     name = name.toProperCase();
@@ -187,7 +215,7 @@ function generateName(){
     // If it isn't already there: 
     // 1/6 chance to prefix "The" if longer than 10 characters
     // 5/6 chance to prefix "The" if shorter than 10 characters
-    if( name.slice(0,3) != "The" && ( chance(1,6) || (chance(4,5) && name.length < 10))) 
+    if( chance(1, 6) || (chance(4, 5) && name.length < 10))
         name = "The " + name;
     
     // If it generated an existing name: reward the user with a star and a sound, at a slight delay
@@ -201,15 +229,15 @@ function generateName(){
             }, 800);
     }
 
-    if(chance(0.5)) name = "The Doors";
-
     // Check for easter eggs.
     for(var egg in easterEggs){
         if( egg == name ){
             pauseAllSounds();
             $("#stars").prepend( $("<span>", {class: "easter-egg", "data-toggle": "tooltip", title: name}).text("★"));
             refreshTooltips();
-            playSound(easterEggs[egg]);
+            playSound(easterEggs[egg].audio);
+            if (easterEggs[egg].func)
+                easterEggs[egg].func();
         }
     }
 
@@ -235,11 +263,21 @@ function smartFadeOut(){
         }, fadeOutTime);
 }
 
+var count = 0;
+var bgCooldown = 0;
+
 function generate(){
     playNewAreaSound();
     $("#name-underline-wrapper").removeClass("faded-out");
     $("#name").text(generateName());
     smartFadeOut();
+
+    count++;
+    bgCooldown++;
+    if(bgCooldown >= 30 || chance(0.04)){
+        bgCooldown = 0;
+        randomBackground();
+    } 
 }
 
 function customGenerate(){
