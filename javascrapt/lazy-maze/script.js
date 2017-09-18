@@ -4,13 +4,22 @@
 
 var wormFunc = _ => 'black';
 
+var dungeonConfig = {
+    base: -0.3,
+    friendBias: 0.3,
+    vSpace: 4, vBias: 0.5,
+    hSpace: 4, hBias: 0.5,
+}
+
 var dungeonFunc = function(tile, grid){
+    var cfg = dungeonConfig;
     var whiteFriends = 0;
     var grayFriends = 0;
     var adjacent = grid.getAdjacent(tile);
     adjacent.forEach(t=>t.state=='white'?whiteFriends++:t.state=='gray'?grayFriends++:0);
-    var p = whiteFriends * 0.3 + grayFriends * 0.1 - (whiteFriends > 2 ? 10 : 0);
-    p += (tile.x % 4 == 0) * 0.5 + (tile.y % 4==0) * 0.5 - 0.3;
+    p = cfg.base;
+    p += (whiteFriends + grayFriends/3) * cfg.friendBias - (whiteFriends > 2 ? 10 : 0);
+    p += (tile.x % cfg.vSpace == 0) * cfg.vBias + (tile.y % cfg.hSpace==0) * cfg.hBias;
     return chance(p) ? 'white' : 'black';
 };
 
@@ -24,6 +33,17 @@ async function reset(){
     var xtiles = parseInt($('#width').val());
     var ytiles = parseInt($('#height').val());
     var func = modeMap[$('input[name=mode]:checked').val()];
+    var $cfg = $('#dungeon-config');
+
+    dungeonConfig = {
+        base: parseFloat($cfg.find('#base').val()),
+        friendBias: parseFloat($cfg.find('#friendBias').val()),
+        vSpace: parseFloat($cfg.find('#vSpace').val()),
+        vBias: parseFloat($cfg.find('#vBias').val()),
+        hSpace: parseFloat($cfg.find('#hSpace').val()),
+        hBias: parseFloat($cfg.find('#hBias').val()),
+    }
+
     maze = new Maze($maze, xtiles, ytiles, func);
 }
 

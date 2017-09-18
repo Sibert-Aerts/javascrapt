@@ -7,3 +7,12 @@
     image-rendering: optimizespeed;
     image-rendering: pixelated;
 }
+
+label{
+    min-width: 180px;
+}
+
+label > input{
+    float: right;
+    margin-right: 20px;
+}
