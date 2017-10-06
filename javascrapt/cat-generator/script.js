@@ -91,6 +91,14 @@ PixelGrid.prototype.drawCircle = async function(x, y, d, color){
     this.ctx.drawImage(img, 0, 0);
 }
 
+PixelGrid.prototype.drawEllipse = async function(x, y, w, h, color){
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2, true);
+    this.ctx.closePath();
+    this.ctx.fill();
+}
+
 PixelGrid.prototype.drawLine = function(x1, y1, x2, y2, width, color){
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = width;
@@ -136,8 +144,8 @@ Cat = function(grid){
 
     // Legs
     this.legLength = randInt(15,25);
-    this.backThick = randInt(2, 4);
-    this.frontThick = randInt(2, 4);
+    this.backThick = randInt(1, 6);
+    this.frontThick = randInt(1, 6);
 
     this.backLeftLeg = [30,50];
     for(var i=0;i<2;i++){
@@ -193,15 +201,24 @@ Cat = function(grid){
     this.leftEar = makeEar(this.headX + 3, this.headY + 2 - this.headSize, w, h);
 
     // Tail
-    this.tail = [22,42];
-    for(var i=0;i<2;i++){
-        this.tail.push(randInt(10,30)); this.tail.push(randInt(20,40))
-    }
+    this.tails = [];
+    this.tails2 = [];
+    this.tailFreq = [];
+
+    for(var _ = 0; _ < randInt(1,2); _++){
+        var tail = [22,42];
+        for(var i=0;i<2;i++){
+            tail.push(randInt(5,40)); tail.push(randInt(20,50))
+        }
+        var tail2 = [22,42];
+        for(var i=0;i<2;i++){
+            tail2.push(randInt(5,40)); tail2.push(randInt(20,50))
+        }
+        this.tails.push(tail);
+        this.tails2.push(tail2);
+        this.tailFreq.push(randInt(5, 30));
+    }    
     
-    this.tail2 = [22,42];
-    for(var i=0;i<2;i++){
-        this.tail2.push(randInt(10,30)); this.tail2.push(randInt(20,40))
-    }
 }
 
 Cat.prototype.animate = async function(){
@@ -217,7 +234,7 @@ Cat.prototype.animate = async function(){
     front.drawSpline(this.frontRightLeg, this.frontThick, 'white');
 
     // Body
-    front.drawRectangle(20, 40, 30, 15, 'white');
+    front.drawEllipse(35, 47.5, 17, 8, 'white');
     
     // neck
     front.drawSpline(this.neck, this.headSize*2-5, 'white');
@@ -243,8 +260,14 @@ Cat.prototype.animate = async function(){
     front.drawPath(this.rightEar, 'white');
 
     // Tail
-    var p = roundNearest(Math.sin(i/10)*0.5+0.5, 0.2);
-    front.drawSpline(arrInterp(this.tail, this.tail2, p), 3, 'white');
+
+    this.tails.forEach((tail, j) => {
+        var p = roundNearest(Math.sin(i/this.tailFreq[j])*0.5+0.5, 0.2);
+        if(j==0)
+            front.drawSpline(arrInterp(tail, this.tails2[j], p), 2, 'white');
+        else
+            back.drawSpline(arrInterp(tail, this.tails2[j], p), 2, 'gray');
+    })
     
     front.alias();
     back.alias();
