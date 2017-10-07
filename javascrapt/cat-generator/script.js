@@ -2,10 +2,20 @@
 //                 Ready                 //
 ///////////////////////////////////////////
 
+DEBUG_ALIAS = true;
+DEBUG_OUTLINE = true;
+DEBUG_FRONT = true;
+DEBUG_BACK = true;
+
 $(document).ready(function(){
     catGen = new CatGenerator($('#cat-container'), 100, 80);
     $('#reset-button').click(catGen.reset.bind(catGen));
-    $('#kill-button').click(catGen.kill.bind(catGen));
+    $('#kill-button').click(_=>catGen.cat.alive=false);
+    // debug buttons
+    $('#alias-button').click(_=>DEBUG_ALIAS=!DEBUG_ALIAS);
+    $('#outline-button').click(_=>DEBUG_OUTLINE=!DEBUG_OUTLINE);
+    $('#front-button').click(_=>DEBUG_FRONT=!DEBUG_FRONT);
+    $('#back-button').click(_=>DEBUG_BACK=!DEBUG_BACK);
 });
 
 
@@ -147,27 +157,21 @@ Cat = function(grid){
     this.backThick = randInt(1, 6);
     this.frontThick = randInt(1, 6);
 
-    this.backLeftLeg = [30,50];
+    this.backLeg = [30,50];
     for(var i=0;i<2;i++){
-        this.backLeftLeg.push(randInt(20, 40));
-        this.backLeftLeg.push(randInt(60, 40 + this.legLength))
+        this.backLeg.push(randInt(20, 40));
+        this.backLeg.push(randInt(60, 40 + this.legLength))
     }
-    this.backLeftLeg.push(randInt(20, 40));
-    this.backLeftLeg.push(50 + this.legLength - this.backThick);
+    this.backLeg.push(randInt(20, 40));
+    this.backLeg.push(50 + this.legLength - this.backThick);
 
-    this.backRightLeg = this.backLeftLeg.slice();
-    for(var i=0;i<this.backRightLeg.length;i+=2) this.backRightLeg[i]-=8;
-
-    this.frontLeftLeg = [50,50];
+    this.frontLeg = [50,50];
     for(var i=0;i<1;i++){
-        this.frontLeftLeg.push(randInt(42, 52));
-        this.frontLeftLeg.push(randInt(60, 40 + this.legLength))
+        this.frontLeg.push(randInt(42, 52));
+        this.frontLeg.push(randInt(60, 40 + this.legLength))
     }
-    this.frontLeftLeg.push(randInt(46, 60));
-    this.frontLeftLeg.push(50 + this.legLength - this.frontThick);
-    
-    this.frontRightLeg = this.frontLeftLeg.slice();
-    for(var i=0;i<this.frontRightLeg.length;i+=2) this.frontRightLeg[i]-=8;
+    this.frontLeg.push(randInt(46, 60));
+    this.frontLeg.push(50 + this.legLength - this.frontThick);
 
     // Head
     this.headSize = randInt(6, 10);
@@ -228,10 +232,14 @@ Cat.prototype.animate = async function(){
     var i = this.frame;
 
     // Legs
-    back.drawSpline(this.backLeftLeg, this.backThick, 'gray');
-    front.drawSpline(this.backRightLeg, this.backThick, 'white');
-    back.drawSpline(this.frontLeftLeg, this.frontThick, 'gray');
-    front.drawSpline(this.frontRightLeg, this.frontThick, 'white');
+    back.drawSpline(this.backLeg, this.backThick, 'gray');
+    back.drawSpline(this.frontLeg, this.frontThick, 'gray');
+    front.ctx.translate(-8, 0);
+    front.drawSpline(this.backLeg, this.backThick, 'white');
+    front.drawSpline(this.frontLeg, this.frontThick, 'white');
+    front.ctx.resetTransform();
+    // back.drawSpline(this.backLeg, this.backThick, 'gray');
+    // back.drawSpline(this.frontLeg, this.frontThick, 'gray');
 
     // Body
     front.drawEllipse(35, 47.5, 17, 8, 'white');
@@ -256,8 +264,11 @@ Cat.prototype.animate = async function(){
     front.drawLine(this.headX, this.headY + 3, this.headX + 2, this.headY + 5, 1, 'black');
 
     // ears
+    var p = roundNearest(Math.sin(i/30)*1+0.5, 1);
+    front.ctx.translate(0, p);
     front.drawPath(this.leftEar, 'white');
     front.drawPath(this.rightEar, 'white');
+    front.ctx.resetTransform();
 
     // Tail
 
@@ -269,15 +280,23 @@ Cat.prototype.animate = async function(){
             back.drawSpline(arrInterp(tail, this.tails2[j], p), 2, 'gray');
     })
     
-    front.alias();
-    back.alias();
+    if(DEBUG_ALIAS){
+        front.alias();
+        back.alias();
+    }
+
     var black = {r:0,g:0,b:0};
-    await front.outline(black);
-    await back.outline(black);
+
+    if(DEBUG_OUTLINE){
+        await front.outline(black);
+        await back.outline(black);
+    }
 
     await this.grid.reset();
-    await this.grid.drawGrid(back);
-    await this.grid.drawGrid(front);
+    if(DEBUG_BACK)
+        await this.grid.drawGrid(back);
+    if(DEBUG_FRONT)
+        await this.grid.drawGrid(front);
 
     this.frame++;
     if(this.alive)
