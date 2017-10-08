@@ -110,21 +110,17 @@ PixelGrid.prototype.drawRectangle = function(x, y, w, h, color){
 }
 
 PixelGrid.prototype.drawCircle = async function(x, y, d, color){
-    var temp = new PixelGrid($('<canvas>'), this.width, this.height);
-    temp.ctx.fillStyle = color;
-    temp.ctx.beginPath();
-    temp.ctx.arc(x, y, d, 0, Math.PI * 2, true);
-    temp.ctx.closePath();
-    temp.ctx.fill();
-    temp.alias();
-    var img = await createImageBitmap(temp.ctx.getImageData(0, 0, this.width, this.height));
-    this.ctx.drawImage(img, 0, 0);
-}
-
-PixelGrid.prototype.drawEllipse = async function(x, y, w, h, color){
     this.ctx.fillStyle = color;
     this.ctx.beginPath();
-    this.ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2, true);
+    this.ctx.arc(x, y, d, 0, Math.PI * 2, true);
+    this.ctx.closePath();
+    this.ctx.fill();
+}
+
+PixelGrid.prototype.drawEllipse = async function(x, y, a, w, h, color){
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    this.ctx.ellipse(x, y, w, h, a, 0, Math.PI * 2, true);
     this.ctx.closePath();
     this.ctx.fill();
 }
@@ -201,7 +197,7 @@ Joint.prototype._get = function(t){
     if(this.parent == null)
         return {x: this.x, y: this.y, a: this.a};
     var p = this.parent.get(t);
-    var x = Math.sin(p.a) * this.y + Math.cos(p.a) * this.x;
+    var x = Math.cos(p.a) * this.x - Math.sin(p.a) * this.y;
     var y = Math.sin(p.a) * this.x + Math.cos(p.a) * this.y;
     return {x: p.x + x, y: p.y + y, a: this.a + p.a};
 }
@@ -246,18 +242,18 @@ JointedSpline.prototype.get = function(t){
 Body = function(){
     this.joint = new Joint(35, 47);
     this.length = randInt(26, 40);
-    this.height = randInt(12, 20);
+    this.height = randInt(8, 20);
     var dx = this.length/2.7;
     var dy = this.height/2.7;
     this.tailJoint = new Joint(-dx, -dy, 0, this.joint);
     this.neckJoint = new Joint(dx, 0, 0, this.joint);
-    this.backLegJoint = new Joint(-dx, dy, 0, this.joint);
-    this.frontLegJoint = new Joint(dx - 8, dy, 0, this.joint);
+    this.backLegJoint = new Joint(-dx, dy - 5, 0, this.joint);
+    this.frontLegJoint = new Joint(dx - 8, dy - 5, 0, this.joint);
 }
 
 Body.prototype.draw = async function(grid, t){
     j = this.joint.get(t);
-    grid.drawEllipse(j.x, j.y, this.length/2, this.height/2, 'white');
+    grid.drawEllipse(j.x, j.y, j.a, this.length/2, this.height/2, 'white');
 }
 
 //////////////////////////////////////////
@@ -266,7 +262,7 @@ Body.prototype.draw = async function(grid, t){
 
 Head = function(size){
     this.joint = new Joint(randInt(45, 55), randInt(30, 40));
-    this.size = size;
+    this.size = randInt(1, 4) + randInt(2, 4) + randInt(1, 4)
 }
 
 Head.prototype.draw = async function(grid, t){
@@ -278,23 +274,54 @@ Head.prototype.draw = async function(grid, t){
 //                 Face                 //
 //////////////////////////////////////////
 
-Face = function(joint){
-    this.joint = joint;
+Face = function(head){
+    this.joint = head.joint;
+    var eyeCount = randInt(0, 2) + randInt(0, 2) + randInt(0, 2) + randInt(0, 2);
+    this.eyes = []
+    var tryCount = 10;
+    var yMin = Math.round(2-head.size);
+    var xMax = Math.round(head.size/2);
+    while(tryCount && eyeCount > this.eyes.length){
+        tryCount--;
+        if(eyeCount - this.eyes.length == 1 || chance(0.3)){
+            var y = randInt(yMin, 1);
+            if(this.eyes.filter(e=>Math.abs(e.x)<3&&Math.abs(e.y-y)<3).length) continue;
+            this.eyes.push(new Joint(0, y, 0, this.joint));
+        } else {
+            var x = randInt(2, xMax);
+            var y = randInt(yMin, 1);
+            if(this.eyes.filter(e=>Math.abs(e.x-x)<3&&Math.abs(e.y-y)<3).length) continue;
+            this.eyes.push(new Joint(x, y, 0, this.joint));
+            this.eyes.push(new Joint(-x, y, 0, this.joint));
+        }
+    }
+    this.eyeGrid = null;
 }
 
 Face.prototype.draw = async function(grid, t){
     j = this.joint.get(t);
-    //   Eyes
+    if(this.eyeGrid == null) this.eyeGrid = new PixelGrid($('<canvas>'), grid.width, grid.height);
+
+    // Eyes
     if(t%150 > 4){
-        await grid.drawCircle(j.x - 3, j.y, 1, 'black');
-        await grid.drawCircle(j.x + 3, j.y, 1, 'black');
+        this.eyeGrid.reset();
+        for(var i=0; i<this.eyes.length; i++){
+            var e = this.eyes[i].get(t);
+            await this.eyeGrid.drawCircle(Math.round(e.x), Math.round(e.y), 1, 'black');
+            await this.eyeGrid.drawRectangle(Math.round(e.x)-1, Math.round(e.y)-1, 1, 1, '#333');
+        }
+        this.eyeGrid.alias();
+        grid.drawGrid(this.eyeGrid);
     } else {
-        grid.drawLine(j.x - 5, j.y + 0.5, j.x - 1, j.y + 0.5, 1, 'black');
-        grid.drawLine(j.x + 1, j.y + 0.5, j.x + 5, j.y + 0.5, 1, 'black');
+        for(var i=0; i<this.eyes.length; i++){
+            var e = this.eyes[i].get(t);
+            await grid.drawLine((x = Math.round(e.x) - 2), (y = Math.round(e.y) + 0.5), x+4, y, 1, 'black');
+        }
     }
+    
     //   Mouth
-    grid.drawLine(j.x, j.y + 3, j.x - 2, j.y + 5, 1, 'black');
-    grid.drawLine(j.x, j.y + 3, j.x + 2, j.y + 5, 1, 'black');
+    grid.drawLine(j.x, j.y+3, j.x-2, j.y+5, 1, 'black');
+    grid.drawLine(j.x, j.y+3, j.x+2, j.y+5, 1, 'black');
 }
 
 //////////////////////////////////////////
@@ -318,7 +345,7 @@ var makeEar = (x, y, w, h) => {
 
 Ears = function(head){
     this.joint = head.joint;
-    var w = randInt(6, head.size-3);
+    var w = randInt(5, head.size-3);
     var h = randInt(5, 10);
     this.leftEar  = makeEar( 3, 2 - head.size, w, h);
     this.rightEar = makeEar(-3, 2 - head.size, w, h);
@@ -411,24 +438,23 @@ Cat = function(grid){
     this.body = new Body();
 
     // Legs
-    var legLength = randInt(15,25);
+    var legLength = randInt(10, 40);
     var backThick = randInt(1, 6);
     var frontThick = randInt(1, 6);
     this.backLeg  = new Leg(this.body.backLegJoint,  legLength, 2, backThick);
     this.frontLeg = new Leg(this.body.frontLegJoint, legLength, 1, frontThick, 4);
-    
 
-    this.yOffset = 80 - this.backLeg.foot.get(0).y - backThick/2 - 1;
+    this.yOffset = Math.round(80 - this.backLeg.foot.get(0).y - backThick/2 - 1);
 
     // Head
-    this.head = new Head(randInt(6, 10));
+    this.head = new Head();
     this.hj = this.head.joint.get(0);
 
     // Neck
     this.neck = new Neck(this.body.neckJoint, this.head.joint, this.head.size*2-5, 0);
 
     // Face
-    this.face = new Face(this.head.joint);
+    this.face = new Face(this.head);
 
     // Ears
     this.ears = new Ears(this.head);
@@ -439,44 +465,48 @@ Cat = function(grid){
 }
 
 Cat.prototype.animate = async function(){
-    var front = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height);
-    var back = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height);
+    var front = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
+    var back = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
     var t = this.frame;
-
+    // Body
+    if(DEBUG_SPIN){
+        this.body.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
+        this.body.joint.x = 35 + roundNearest(Math.cos(t/30)*10, 1);
+        this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*10, 1);
+    } else {
+        this.body.joint.a = 0;
+        // this.body.joint.a = roundNearest(Math.cos(t/60)*0.1, 0.1);
+        this.body.joint.x = 35;
+        this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*1, 1);
+    }
+    await this.body.draw(front, t);
+    
     // Legs
     this.backLeg.draw(front, t, 'white');
     this.backLeg.draw(back, t, 'gray', 8);
     this.frontLeg.draw(front, t, 'white');
     this.frontLeg.draw(back, t, 'gray', 8);
-
-    // Body
-    if(DEBUG_SPIN){
-        this.body.joint.x = 35 + roundNearest(Math.cos(t/30)*10, 1);
-        this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*10, 1);
-    } else {
-        this.body.joint.x = 35;
-        this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*1, 1);
-    }
-    await this.body.draw(front, t);
     
     // neck
     await this.neck.draw(front, t);
 
     // head
     if(DEBUG_SPIN){
+        this.head.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
         this.head.joint.x = this.hj.x + roundNearest(Math.cos(t/40)*16 + 12, 1);
         this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20)*16 + 12, 1);
     } else {
+        this.head.joint.a = 0;
         this.head.joint.x = this.hj.x// + roundNearest(Math.cos(t/90)*4 + 2, 1);
         this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/30)*4 + 2, 1);
     }
     await this.head.draw(front ,t);
     
-    // Face
-    await this.face.draw(front, t);
-
     // Ears
     await this.ears.draw(front, t);
+    
+    // Face
+    await this.face.draw(front, t);
 
     // Tail
     this.tail.tip.x = this.tt.x + roundNearest(Math.cos(t/60)*8, 1);

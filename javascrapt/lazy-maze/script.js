@@ -72,7 +72,6 @@ async function reset(){
 function readConfig(){
     var $fields = $('#config input');
     $fields.each((i,e)=>selectedConfig[$(e).attr('name')]=parseFloat($(e).val()));
-    console.log(selectConfig);
 }
 
 function writeConfig(){
@@ -110,7 +109,11 @@ Tile = function(grid, x, y){
 
 Tile.prototype.set = async function(state){
     this.state = state;
-    this.ctx.fillStyle = state;
+    this.paint();
+}
+
+Tile.prototype.paint = async function(color=null){
+    this.ctx.fillStyle = color || this.state;
     this.ctx.fillRect(this.x, this.y, 1, 1);
 }
 
@@ -228,12 +231,21 @@ Maze.prototype.reset = function(){
     this.initialize();
 }
 
+Maze.colors = ['white', 'red', 'orange', 'yellow','lime','cyan', 'blue', 'purple', 'magenta'];
+Maze.colori = 0;
+Maze.getColor = function(){
+    var i = Maze.colori;
+    Maze.colori = (Maze.colori+1)%Maze.colors.length;
+    return Maze.colors[i];
+}
+
 Maze.prototype.generate = async function(){
     console.time('maze');
     var speed = 1000;
     var i = 0;
 
     this.explored = [];
+    this.color = 'white';
     while(this.queue.length){
         var tile = popRandom(this.queue);
         if(tile.state != 'gray') continue;
@@ -242,7 +254,7 @@ Maze.prototype.generate = async function(){
 
         if(chance(speed/this.queue.length)){
             speed = Math.pow($('#speed-range').val(), 2);
-            await sleep(speed/20); // sleep(0) ~=~ sleep(3) because javascript
+            await sleep(speed/20);
         }
     }
     console.timeEnd('maze');
@@ -263,6 +275,7 @@ Maze.prototype.generateTile = async function(tile){
 
     if(tile.state=='white'){
         // Expand the queue and explored list
+        tile.paint(this.color);
         this.explored.push(tile);
         this.queue = this.queue.concat(this.grid.getAdjacent(tile).filter(t=>this.queue.indexOf(t)<0)).filter(t=>t.state=='gray');
     }
