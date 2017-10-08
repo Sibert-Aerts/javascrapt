@@ -277,9 +277,10 @@ Head.prototype.draw = async function(grid, t){
 Face = function(head){
     this.joint = head.joint;
     var eyeCount = randInt(0, 2) + randInt(0, 2) + randInt(0, 2) + randInt(0, 2);
+    if(chance(0.5)) eyeCount = 2;
     this.eyes = []
     var tryCount = 10;
-    var yMin = Math.round(2-head.size);
+    var yMin = Math.round(3-head.size);
     var xMax = Math.round(head.size/2);
     while(tryCount && eyeCount > this.eyes.length){
         tryCount--;
@@ -365,6 +366,7 @@ Ears.prototype.draw = async function(grid, t){
 //////////////////////////////////////////
 
 Tail = function(tailJoint, jointCount=2){
+    this.width = randInt(1, 5);
     var joints = [tailJoint];
     for(var i=0; i<jointCount-1; i++)
         joints.push({x: randInt(5, 25), y: randInt(20, 35)});
@@ -375,7 +377,7 @@ Tail = function(tailJoint, jointCount=2){
 
 Tail.prototype.draw = async function(grid, t){
     spline = this.spline.get(t);
-    grid.drawSpline(spline, 3, 'white');
+    grid.drawSpline(spline, this.width, 'white');
 }
 
 
@@ -525,7 +527,7 @@ Cat.prototype.animate = async function(){
     }
 
     await this.grid.reset();
-    this.grid.ctx.translate(0, this.yOffset);
+    this.grid.ctx.translate(10, this.yOffset);
     if(DEBUG_BACK)
         await this.grid.drawGrid(back);
     if(DEBUG_FRONT)
