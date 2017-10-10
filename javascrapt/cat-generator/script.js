@@ -5,7 +5,7 @@
 DEBUG_ALIAS = true;
 DEBUG_OUTLINE = true;
 DEBUG_SPLINES = false;
-DEBUG_SPIN = false;
+DEBUG_ANIM_MODE = "default";
 DEBUG_FRONT = true;
 DEBUG_BACK = true;
 
@@ -19,7 +19,9 @@ $(document).ready(function(){
     $('#front-button').click(_=>DEBUG_FRONT=!DEBUG_FRONT);
     $('#back-button').click(_=>DEBUG_BACK=!DEBUG_BACK);
     $('#spline-button').click(_=>DEBUG_SPLINES=!DEBUG_SPLINES);
-    $('#spin-button').click(_=>DEBUG_SPIN=!DEBUG_SPIN);
+    $('button#anim-default').click(_=>DEBUG_ANIM_MODE='default');
+    $('button#anim-spin').click(_=>DEBUG_ANIM_MODE='spin');
+    $('button#anim-keke').click(_=>DEBUG_ANIM_MODE='keke');
 });
 
 
@@ -109,7 +111,7 @@ PixelGrid.prototype.drawRectangle = function(x, y, w, h, color){
     this.ctx.fillRect(x, y, w, h);
 }
 
-PixelGrid.prototype.drawCircle = async function(x, y, d, color){
+PixelGrid.prototype.drawCircle = function(x, y, d, color){
     this.ctx.fillStyle = color;
     this.ctx.beginPath();
     this.ctx.arc(x, y, d, 0, Math.PI * 2, true);
@@ -117,7 +119,7 @@ PixelGrid.prototype.drawCircle = async function(x, y, d, color){
     this.ctx.fill();
 }
 
-PixelGrid.prototype.drawEllipse = async function(x, y, a, w, h, color){
+PixelGrid.prototype.drawEllipse = function(x, y, a, w, h, color){
     this.ctx.fillStyle = color;
     this.ctx.beginPath();
     this.ctx.ellipse(x, y, w, h, a, 0, Math.PI * 2, true);
@@ -262,7 +264,7 @@ Body.prototype.draw = async function(grid, t){
 
 Head = function(size){
     this.joint = new Joint(randInt(45, 55), randInt(30, 40));
-    this.size = randInt(1, 4) + randInt(2, 4) + randInt(1, 4)
+    this.size = randInt(1, 4) + randInt(2, 4) + randInt(1, 4);
 }
 
 Head.prototype.draw = async function(grid, t){
@@ -279,21 +281,25 @@ Face = function(head){
     var eyeCount = randInt(0, 2) + randInt(0, 2) + randInt(0, 2) + randInt(0, 2);
     if(chance(0.5)) eyeCount = 2;
     this.eyes = []
-    var tryCount = 10;
+    var tryCount = 50;
     var yMin = Math.round(3-head.size);
     var xMax = Math.round(head.size/2);
     while(tryCount && eyeCount > this.eyes.length){
         tryCount--;
         if(eyeCount - this.eyes.length == 1 || chance(0.3)){
-            var y = randInt(yMin, 1);
-            if(this.eyes.filter(e=>Math.abs(e.x)<3&&Math.abs(e.y-y)<3).length) continue;
-            this.eyes.push(new Joint(0, y, 0, this.joint));
+            var y = randInt(yMin, 0);
+            var s = chance(0.4 + (eyeCount**0.6)/10) ? 1 : chance(0.6)? 1.25 : 1.6;
+            if(this.eyes.filter(e=>Math.abs(e.joint.x)-e.size-s<1&&Math.abs(e.joint.y-y)-e.size-s<1).length) 
+                continue;
+            this.eyes.push(new Eye(new Joint(0, y, 0, this.joint), s));
         } else {
-            var x = randInt(2, xMax);
-            var y = randInt(yMin, 1);
-            if(this.eyes.filter(e=>Math.abs(e.x-x)<3&&Math.abs(e.y-y)<3).length) continue;
-            this.eyes.push(new Joint(x, y, 0, this.joint));
-            this.eyes.push(new Joint(-x, y, 0, this.joint));
+            var x = randInt(3, xMax);
+            var y = randInt(yMin, 0);
+            var s = chance(0.5 + (eyeCount**0.6)/10) ? 1 : 1.25;
+            if(this.eyes.filter(e=>Math.abs(e.joint.x-x)-e.size-s<1&&Math.abs(e.joint.y-y)-e.size-s<1).length) 
+                continue;
+            this.eyes.push(new Eye(new Joint(x, y, 0, this.joint), s));
+            this.eyes.push(new Eye(new Joint(-x, y, 0, this.joint), s));
         }
     }
     this.eyeGrid = null;
@@ -301,28 +307,41 @@ Face = function(head){
 
 Face.prototype.draw = async function(grid, t){
     j = this.joint.get(t);
-    if(this.eyeGrid == null) this.eyeGrid = new PixelGrid($('<canvas>'), grid.width, grid.height);
+    if(this.eyeGrid == null)
+        this.eyeGrid = new PixelGrid($('<canvas>'), grid.width, grid.height);
 
     // Eyes
-    if(t%150 > 4){
-        this.eyeGrid.reset();
-        for(var i=0; i<this.eyes.length; i++){
-            var e = this.eyes[i].get(t);
-            await this.eyeGrid.drawCircle(Math.round(e.x), Math.round(e.y), 1, 'black');
-            await this.eyeGrid.drawRectangle(Math.round(e.x)-1, Math.round(e.y)-1, 1, 1, '#333');
-        }
-        this.eyeGrid.alias();
-        grid.drawGrid(this.eyeGrid);
-    } else {
-        for(var i=0; i<this.eyes.length; i++){
-            var e = this.eyes[i].get(t);
-            await grid.drawLine((x = Math.round(e.x) - 2), (y = Math.round(e.y) + 0.5), x+4, y, 1, 'black');
-        }
-    }
+    this.eyeGrid.reset();
+    for(var i=0; i < this.eyes.length; i++)
+        this.eyes[i].draw(this.eyeGrid, t);
+    this.eyeGrid.alias();
+    grid.drawGrid(this.eyeGrid);
     
     //   Mouth
     grid.drawLine(j.x, j.y+3, j.x-2, j.y+5, 1, 'black');
     grid.drawLine(j.x, j.y+3, j.x+2, j.y+5, 1, 'black');
+}
+
+//////////////////////////////////////////
+//                 Eye                  //
+//////////////////////////////////////////
+
+Eye = function(joint, size){
+    this.joint = joint;
+    this.size = size;
+}
+
+Eye.prototype.draw = function(grid, t){
+    var j = this.joint.get(t);
+    var x = Math.round(j.x);
+    var y = Math.round(j.y);
+    if(t%150 > 4){
+        grid.drawCircle(x, y, this.size, '#000');
+        grid.drawRectangle(x-1, y-1, 1, 1, '#544');
+        grid.drawRectangle(x, y, 1, 1, '#100');
+    } else {
+        grid.drawLine(x-2, y + 0.5, x+2, y+0.5, 1, 'black');
+    }
 }
 
 //////////////////////////////////////////
@@ -438,6 +457,8 @@ Cat = function(grid){
 
     // Body
     this.body = new Body();
+    this.bl = this.body.length;
+    this.bh = this.body.height;
 
     // Legs
     var legLength = randInt(10, 40);
@@ -471,15 +492,24 @@ Cat.prototype.animate = async function(){
     var back = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
     var t = this.frame;
     // Body
-    if(DEBUG_SPIN){
+    if(DEBUG_ANIM_MODE == "default"){
+        this.body.joint.a = 0;
+        this.body.joint.x = 35;
+        this.body.joint.y = 47 + roundNearest(Math.sin(t/20)*1, 1);
+        this.body.height = this.bh;
+        this.body.length = this.bl;
+    } else if(DEBUG_ANIM_MODE == "spin"){
         this.body.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
         this.body.joint.x = 35 + roundNearest(Math.cos(t/30)*10, 1);
         this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*10, 1);
-    } else {
+        this.body.height = this.bh;
+        this.body.length = this.bl;
+    } else if(DEBUG_ANIM_MODE == "keke"){
         this.body.joint.a = 0;
-        // this.body.joint.a = roundNearest(Math.cos(t/60)*0.1, 0.1);
         this.body.joint.x = 35;
-        this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*1, 1);
+        this.body.joint.y = 47 + roundNearest(Math.sin(t/8)*10, 1);
+        this.body.height = roundNearest(this.bh * (Math.sin(t/8 + 3.14)*0.6 + 1.1), 1);
+        this.body.length = roundNearest(this.bl * (Math.sin(t/8)*0.4 + 1), 1);
     }
     await this.body.draw(front, t);
     
@@ -493,14 +523,18 @@ Cat.prototype.animate = async function(){
     await this.neck.draw(front, t);
 
     // head
-    if(DEBUG_SPIN){
+    if(DEBUG_ANIM_MODE == "default"){
+        this.head.joint.a = 0;
+        this.head.joint.x = this.hj.x;
+        this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20-0.4)*3, 1);
+    } else if(DEBUG_ANIM_MODE == "spin"){
         this.head.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
         this.head.joint.x = this.hj.x + roundNearest(Math.cos(t/40)*16 + 12, 1);
         this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20)*16 + 12, 1);
-    } else {
+    } else if(DEBUG_ANIM_MODE == "keke"){
         this.head.joint.a = 0;
-        this.head.joint.x = this.hj.x// + roundNearest(Math.cos(t/90)*4 + 2, 1);
-        this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/30)*4 + 2, 1);
+        this.head.joint.x = this.hj.x;
+        this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/8-0.2)*10, 1);
     }
     await this.head.draw(front ,t);
     
@@ -511,8 +545,8 @@ Cat.prototype.animate = async function(){
     await this.face.draw(front, t);
 
     // Tail
-    this.tail.tip.x = this.tt.x + roundNearest(Math.cos(t/60)*8, 1);
-    this.tail.tip.y = this.tt.y + roundNearest(Math.sin(t/30)*4, 1);
+    this.tail.tip.x = this.tt.x + roundNearest(Math.cos(t/40)*8, 1);
+    this.tail.tip.y = this.tt.y + roundNearest(Math.sin(t/20)*4, 1);
     await this.tail.draw(front, t);
     
     var black = {r:0,g:0,b:0};
