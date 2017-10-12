@@ -187,6 +187,10 @@ Joint = function(x, y, a=0, parent=null){
     this.cachedGet = null;
 }
 
+Joint.prototype.animation = function(t){
+    return {x: 0, y: 0, a: 0};
+}
+
 Joint.prototype.get = function(t){
     if(this.cachedTime != t){
         this.cachedTime = t;
@@ -196,12 +200,16 @@ Joint.prototype.get = function(t){
 }
 
 Joint.prototype._get = function(t){
+    var anim = this.animation(t);
+    var tx = this.x + anim.x;
+    var ty = this.y + anim.y;
+    var ta = this.a + anim.a;
     if(this.parent == null)
-        return {x: this.x, y: this.y, a: this.a};
+        return {x: tx, y: ty, a: ta};
     var p = this.parent.get(t);
-    var x = Math.cos(p.a) * this.x - Math.sin(p.a) * this.y;
-    var y = Math.sin(p.a) * this.x + Math.cos(p.a) * this.y;
-    return {x: p.x + x, y: p.y + y, a: this.a + p.a};
+    x = Math.cos(p.a) * tx - Math.sin(p.a) * ty;
+    y = Math.sin(p.a) * tx + Math.cos(p.a) * ty;
+    return {x: p.x + x, y: p.y + y, a: ta + p.a};
 }
 
 
@@ -243,6 +251,7 @@ JointedSpline.prototype.get = function(t){
 
 Body = function(){
     this.joint = new Joint(35, 47);
+    this.joint.animation = t => ({x: 0, y: Math.round(Math.cos(t/30)*2), a:0});
     this.length = randInt(26, 40);
     this.height = randInt(8, 20);
     var dx = this.length/2.7;
@@ -276,8 +285,8 @@ Head.prototype.draw = async function(grid, t){
 //                 Face                 //
 //////////////////////////////////////////
 
-Face = function(head){
-    this.joint = head.joint;
+Face = function(head, joint=null){
+    this.joint = joint || head.joint;
     var eyeCount = randInt(0, 2) + randInt(0, 2) + randInt(0, 2) + randInt(0, 2);
     if(chance(0.5)) eyeCount = 2;
     this.eyes = []
@@ -337,8 +346,8 @@ Eye.prototype.draw = function(grid, t){
     var y = Math.round(j.y);
     if(t%150 > 4){
         grid.drawCircle(x, y, this.size, '#000');
-        grid.drawRectangle(x-1, y-1, 1, 1, '#544');
-        grid.drawRectangle(x, y, 1, 1, '#100');
+        grid.drawRectangle(x-1, y-1, 1, 1, '#655');
+        grid.drawRectangle(x, y, 1, 1, '#300');
     } else {
         grid.drawLine(x-2, y + 0.5, x+2, y+0.5, 1, 'black');
     }
@@ -388,8 +397,10 @@ Tail = function(tailJoint, jointCount=2){
     this.width = randInt(1, 5);
     var joints = [tailJoint];
     for(var i=0; i<jointCount-1; i++)
-        joints.push({x: randInt(5, 25), y: randInt(20, 35)});
-    this.tip = new Joint(randInt(5, 25), randInt(20, 35));
+        joints.push(new Joint(randInt(-10, 0), randInt(-20, 0), 0, tailJoint));
+    this.tip = new Joint(randInt(-10, 0), randInt(-20, 0), 0, tailJoint);
+    tailJoint.animation = t=>({x:0,y:0, a: roundNearest(Math.cos(t/40)*0.6, 0.1)})
+    this.tip.animation = t=>({x:Math.round(Math.cos(t/40)*8), y:Math.round(Math.sin(t/20)*8), a:0})
     joints.push(this.tip);
     this.spline = new JointedSpline(joints);
 }
@@ -492,25 +503,17 @@ Cat.prototype.animate = async function(){
     var back = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
     var t = this.frame;
     // Body
-    if(DEBUG_ANIM_MODE == "default"){
-        this.body.joint.a = 0;
-        this.body.joint.x = 35;
-        this.body.joint.y = 47 + roundNearest(Math.sin(t/20)*1, 1);
-        this.body.height = this.bh;
-        this.body.length = this.bl;
-    } else if(DEBUG_ANIM_MODE == "spin"){
-        this.body.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
-        this.body.joint.x = 35 + roundNearest(Math.cos(t/30)*10, 1);
-        this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*10, 1);
-        this.body.height = this.bh;
-        this.body.length = this.bl;
-    } else if(DEBUG_ANIM_MODE == "keke"){
-        this.body.joint.a = 0;
-        this.body.joint.x = 35;
-        this.body.joint.y = 47 + roundNearest(Math.sin(t/8)*10, 1);
-        this.body.height = roundNearest(this.bh * (Math.sin(t/8 + 3.14)*0.6 + 1.1), 1);
-        this.body.length = roundNearest(this.bl * (Math.sin(t/8)*0.4 + 1), 1);
-    }
+    // if(DEBUG_ANIM_MODE == "default"){
+    //     this.body.joint.y = 47 + roundNearest(Math.sin(t/20)*1, 1);
+    // } else if(DEBUG_ANIM_MODE == "spin"){
+    //     this.body.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
+    //     this.body.joint.x = 35 + roundNearest(Math.cos(t/30)*10, 1);
+    //     this.body.joint.y = 47 + roundNearest(Math.sin(t/30)*10, 1);
+    // } else if(DEBUG_ANIM_MODE == "keke"){
+    //     this.body.joint.y = 47 + roundNearest(Math.sin(t/8)*10, 1);
+    //     this.body.height = roundNearest(this.bh * (Math.sin(t/8 + 3.14)*0.5 + 1), 1);
+    //     this.body.length = this.bl + roundNearest(Math.sqrt(this.bl) * (Math.sin(t/8) + 1.2), 1);
+    // }
     await this.body.draw(front, t);
     
     // Legs
@@ -523,19 +526,15 @@ Cat.prototype.animate = async function(){
     await this.neck.draw(front, t);
 
     // head
-    if(DEBUG_ANIM_MODE == "default"){
-        this.head.joint.a = 0;
-        this.head.joint.x = this.hj.x;
-        this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20-0.4)*3, 1);
-    } else if(DEBUG_ANIM_MODE == "spin"){
-        this.head.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
-        this.head.joint.x = this.hj.x + roundNearest(Math.cos(t/40)*16 + 12, 1);
-        this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20)*16 + 12, 1);
-    } else if(DEBUG_ANIM_MODE == "keke"){
-        this.head.joint.a = 0;
-        this.head.joint.x = this.hj.x;
-        this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/8-0.2)*10, 1);
-    }
+    // if(DEBUG_ANIM_MODE == "default"){
+    //     this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20-0.4)*3, 1);
+    // } else if(DEBUG_ANIM_MODE == "spin"){
+    //     this.head.joint.a = roundNearest(Math.cos(t/50)*2, 0.2);
+    //     this.head.joint.x = this.hj.x + roundNearest(Math.cos(t/40)*16 + 12, 1);
+    //     this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/20)*16 + 12, 1);
+    // } else if(DEBUG_ANIM_MODE == "keke"){
+    //     this.head.joint.y = this.hj.y + roundNearest(Math.sin(t/8-0.2)*10, 1);
+    // }
     await this.head.draw(front ,t);
     
     // Ears
@@ -545,8 +544,8 @@ Cat.prototype.animate = async function(){
     await this.face.draw(front, t);
 
     // Tail
-    this.tail.tip.x = this.tt.x + roundNearest(Math.cos(t/40)*8, 1);
-    this.tail.tip.y = this.tt.y + roundNearest(Math.sin(t/20)*4, 1);
+    // this.tail.tip.x = this.tt.x + roundNearest(Math.cos(t/40)*8, 1);
+    // this.tail.tip.y = this.tt.y + roundNearest(Math.sin(t/20)*4, 1);
     await this.tail.draw(front, t);
     
     var black = {r:0,g:0,b:0};
