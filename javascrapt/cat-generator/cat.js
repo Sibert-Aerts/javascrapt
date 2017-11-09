@@ -301,6 +301,9 @@ Cat = function(grid){
     this.grid = grid;
     this.frame = 0;
     this.alive = true;
+    
+    this.front = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
+    this.back = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
 
     // Body
     this.body = new Body();
@@ -334,9 +337,19 @@ Cat = function(grid){
     this.tt = this.tail.tip.get(0);
 }
 
-Cat.prototype.animate = async function(){
-    var front = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
-    var back = new PixelGrid($('<canvas>'), this.grid.width, this.grid.height + 40);
+Cat.prototype.animate = function(){
+    this.frameID = window.requestAnimationFrame(this.drawFrame.bind(this));
+}
+
+Cat.prototype.stop = function(){
+    cancelAnimationFrame(this.frameID);
+}
+
+Cat.prototype.drawFrame = async function(){
+    this.front.reset();
+    this.back.reset();
+    var front = this.front;
+    var back = this.back;
     var t = this.frame;
     // Body
     // if(DEBUG_ANIM_MODE == "default"){
@@ -402,6 +415,5 @@ Cat.prototype.animate = async function(){
     this.grid.ctx.resetTransform();
 
     this.frame++;
-    if(this.alive)
-        window.requestAnimationFrame(this.animate.bind(this));
+    this.frameID = window.requestAnimationFrame(this.drawFrame.bind(this));
 }
