@@ -115,7 +115,7 @@ Head.prototype.draw = async function(grid, t){
 Face = function(head, joint=null){
     this.joint = joint || head.joint;
     var eyeCount = randInt(0, 2) + randInt(0, 2) + randInt(0, 2) + randInt(0, 2);
-    if(chance(0.5)) eyeCount = 2;
+    if(chance(0.7)) eyeCount = 2;
     this.eyes = []
     var tryCount = 50;
     var yMin = Math.round(3-head.size);
@@ -338,11 +338,18 @@ Cat = function(grid){
 }
 
 Cat.prototype.animate = function(){
-    this.frameID = window.requestAnimationFrame(this.drawFrame.bind(this));
+    this.paused = false;
+    this.frameID = window.requestAnimationFrame(this.frameLoop.bind(this));
 }
 
 Cat.prototype.stop = function(){
+    this.paused = true;
     cancelAnimationFrame(this.frameID);
+}
+
+Cat.prototype.pause_unpause = function(){
+    if (this.paused) this.animate();
+    else this.stop();
 }
 
 Cat.prototype.drawFrame = async function(){
@@ -413,7 +420,10 @@ Cat.prototype.drawFrame = async function(){
     if(DEBUG_FRONT)
         await this.grid.drawGrid(front);
     this.grid.ctx.resetTransform();
+}
 
+Cat.prototype.frameLoop = function(){
+    this.drawFrame();
     this.frame++;
-    this.frameID = window.requestAnimationFrame(this.drawFrame.bind(this));
+    this.frameID = window.requestAnimationFrame(this.frameLoop.bind(this));
 }
